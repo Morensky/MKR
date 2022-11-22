@@ -217,6 +217,10 @@ def _Y_(ej_buf, q_buf, N_buf, h, n):
     line1, line2 = np.zeros(n+2), np.zeros(n+2)
     line0, line3 = line1, line2
     
+    line0[2] = 1
+    line1[1:4,0] = [-1,0-1]
+    line2[-2:-4] = [1,-2,1]
+    line3[-1:-5] = [-1,2,0,-2,1]
     #получение расширенной матрицы K~
     
     
