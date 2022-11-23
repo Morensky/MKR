@@ -222,7 +222,10 @@ def _Y_(ej_buf, q_buf, N_buf, h, n):
     line2[-2:-4] = [1,-2,1]
     line3[-1:-5] = [-1,2,0,-2,1]
     #получение расширенной матрицы K~
-    
+    K_buf = np.insert(K_buf, 0, [line0], axis=0)
+    K_buf = np.insert(K_buf, 1, [line1], axis=0)
+    K_buf = np.append(K_buf, [line2], axis=0)
+    K_buf = np.append(K_buf, [line3], axis=0) 
     
     return 0
 
