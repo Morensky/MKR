@@ -185,49 +185,54 @@ def WIZI(p, leng, quantity_0):
     plt.show()
     return 0
 #================================================================================================================
-## тут мы создаем информацию (набор данных)
-p, l, n = 1000, 1, 11
-h = l / (n - 1)
-#================================================================================================================
 #получение значения (EJy``)`` - (Ny`)`;
-def _Y_(ej_buf, q_buf, N_buf, h, n):
-    K_buf = np.zeros((n))
-    k2, k1, k0 = [], [], []
+def _Y_(ej_buf, q_buf, h, n):
+    K_buf = np.zeros((n, n+4))
     
-    #поулучение частей для матрицы K
-    for i in range(0,n+2,1):
-        k2.append( ( ej_buf[i+1] + 2*ej_buf[i] + ej_buf[i-1] ) / (2 * pow(h,4)) )
-        k1.append( ( (-6 * ej_buf[i]) / pow(h,4) ) + ( N_buf[i+1] + 4*N_buf[i] + N_buf[i-1] ) / (4 * pow(h,2)) )
-        k0.append( ( 10*ej_buf[i] - 2*ej_buf[i+1] - 2*ej_buf[i-1] ) / pow(h,4) - ( 2*N_buf[i] / pow(h,2) ) )
-    
+    #распределение на матрицу K
     for i in range(n):
-        line = []
-        for j in range(n+2):
+        for j in range(n+4):
             if i == j or i+4 == j:
-                x = k2[j]
+                x = ( ej_buf[i+1] + 2*ej_buf[i] + ej_buf[i-1] ) / (2 * pow(h,4))
+                K_buf = np.insert(K_buf, i, [x], axis=0)
             elif i+1 == j or i+3 == j:
-                x = k1[j]
+                x = (-6 * ej_buf[i]) / pow(h,4)
+                K_buf = np.insert(K_buf, i, [x], axis=0)
             elif i+2 == j:
-                x = k0[j]
+                x = ( 10*ej_buf[i] - 2*ej_buf[i+1] - 2*ej_buf[i-1] ) / pow(h,4)
+                K_buf = np.insert(K_buf, i, [x], axis=0)
             else:
                 x = 0
-            line.append(x)
-        K_buf[i] = line
+                K_buf = np.insert(K_buf, i, [x], axis=0)
     
-    line1, line2 = np.zeros(n+2), np.zeros(n+2)
+    #расширители матрицы K
+    line1, line2 = np.zeros(n+4), np.zeros(n+4)
     line0, line3 = line1, line2
     
     line0[2] = 1
-    line1[1:4,0] = [-1,0-1]
-    line2[-2:-4] = [1,-2,1]
-    line3[-1:-5] = [-1,2,0,-2,1]
+    line1[1:4] = [-1,0,-1]
+    line2[-5:-2] = [1,-2,1]
+    line3[-6:-1] = [-1,2,0,-2,1]
     #получение расширенной матрицы K~
     K_buf = np.insert(K_buf, 0, [line0], axis=0)
     K_buf = np.insert(K_buf, 1, [line1], axis=0)
     K_buf = np.append(K_buf, [line2], axis=0)
-    K_buf = np.append(K_buf, [line3], axis=0) 
+    K_buf = np.append(K_buf, [line3], axis=0)     
     
-    return 0
-
-
+    _y_ = np.linalg.solve(K_buf, q_buf)
+    return _y_
 #================================================================================================================
+## тут мы создаем информацию (набор данных)
+p, l, n = 1000, 1, 11
+h = l / (n - 1)
+
+#пусть N(x) = 0, а EJ(x) = const
+ej_buf = np.eye(n+4, k=0) * ( 2*pow(10,11) * 0.005 * pow(0.01,3) / 12 )
+q_buf = np.zeros((n+4,1))
+q_buf[2:n+3] = 2000
+q_buf[-2] = 4500*pow(0.01,2) / ( 2*pow(10,11) * 0.005 * pow(0.01,3) / 12 )
+q_buf[-1] = 2*2000 * pow(0.01,3) / ( 2*pow(10,11) * 0.005 * pow(0.01,3) / 12 )
+
+y_buf = _Y_(ej_buf, q_buf, h, n)
+plt.plot(y_buf)
+plt.show()
